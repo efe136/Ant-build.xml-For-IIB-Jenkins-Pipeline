@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<project name="IIB" default="run">
+  <target name="run" description="">
+    <property name="toolkit.home" value="/path/to/IBM/tools" />   <!--location of toolkit-->
+    <property name="ant.bars.basedir" value="/path/to/.bar/folder" />  <!--location of generated bar-->
+    <property name="bar.name" value="${ant.bars.basedir}/TEST.bar" />  <!--default Bar name-->
+    <property name="workspace.dir" value="/path/to/workspace" />    <!--location of default workspace--> 
+    <antcall target="build" />
+    <antcall target="deploy" />
+    <antcall target="property" />
+  </target>
+
+  <target name="build">
+
+    <exec executable="id" />
+    <exec executable="mqsiservice">
+      <arg value="-v" />
+    </exec>
+    <exec executable="mqsilist" />
+    <exec executable="mqsilist">
+      <arg value="IIB" />  <!-- Broker name-->
+    </exec>
+
+     <echo message="Building the Message Broker Project @ ${workspace.dir}" />
+     <exec executable="${toolkit.home}/mqsicreatebar">
+        <env key="DISPLAY" value=":100"/>
+        <arg value="-data" />
+            <arg value="${workspace.dir}" />
+        <arg value="-b" />
+            <arg value="${bar.name}" />
+        <arg value="-a" />
+            <arg value="test" />   <!-- project folder name -->
+        <arg value="-deployAsSource" />
+        <arg value="-cleanBuild" />
+        <arg value="-trace" />
+        <arg value="-wmbtData" />
+     </exec>
+  </target>
+
+  <target name="deploy">
+    <exec dir="${workspace.dir}" executable="mqsideploy" failonerror="true">
+      <arg value="IIB" />  <!-- Broker name-->
+      <arg value="-e" />
+      <arg value="SRV1" />  <!-- Execution name-->
+      <arg value="-a" />
+      <arg value="${bar.name}" />
+      <arg value="-m" />
+    </exec>
+  </target>
+
+  <target name="property">
+    <exec executable="mqsireportproperties">
+      <arg value="IIB" />  <!-- Broker name -->
+      <arg value="-e" />
+      <arg value="SRV1" />  <!-- Execution name -->
+      <arg value="-o" />
+      <arg value="HTTPConnector" />
+      <arg value="-r" />
+    </exec>
+  </target>
+
+  <!--
+           Target to build the broker archive using mqsiapplybaroverride
+  <target name="modifybar">
+    <echo message="Applying overrides in Broker Archive file - ${bar.name} " />
+    <echo
+      message="${toolkit.home}/mqsiapplybaroverride
+            -b  ${bar.name} -p ${bar.properties.name}" />
+    <exec executable="${toolkit.home}/mqsiapplybaroverride.exe" spawn="false">
+      <arg value="-b" />
+      <arg value="${bar.name}" />
+      <arg value="-p" />
+      <arg value="${bar.properties.name}" />
+    </exec>
+    <echo message="Completed apply overrides in Broker Archive file - ${bar.name}" />
+  </target>
+-->
+
+</project>
